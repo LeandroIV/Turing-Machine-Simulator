@@ -50,7 +50,7 @@ class TuringMachineSimulator:
     def __init__(self, master):
         self.master = master
         master.title("Turing Machine Simulator")
-        master.geometry("600x900")
+        master.geometry("900x650")
         master.configure(bg="#f0f0f0")
 
         # Initialize Turing Machine
@@ -63,36 +63,41 @@ class TuringMachineSimulator:
         style.configure("TEntry", font=("Helvetica", 10))
         style.configure("TButton", font=("Helvetica", 10), padding=5)
 
-        ttk.Label(master, text="States (comma-separated):").pack(pady=5)
-        self.states_entry = ttk.Entry(master, width=50)
+        # Left Frame for Inputs
+        left_frame = ttk.Frame(master)
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+
+        ttk.Label(left_frame, text="States (comma-separated):").pack(pady=5)
+        self.states_entry = ttk.Entry(left_frame, width=50)
         self.states_entry.pack(pady=5)
 
-        ttk.Label(master, text="Input Symbols (comma-separated):").pack(pady=5)
-        self.input_symbols_entry = ttk.Entry(master, width=50)
+        ttk.Label(left_frame, text="Input Symbols (comma-separated):").pack(pady=5)
+        self.input_symbols_entry = ttk.Entry(left_frame, width=50)
         self.input_symbols_entry.pack(pady=5)
 
-        ttk.Label(master, text="Initial State:").pack(pady=5)
-        self.initial_state_entry = ttk.Entry(master, width=50)
+        ttk.Label(left_frame, text="Initial State:").pack(pady=5)
+        self.initial_state_entry = ttk.Entry(left_frame, width=50)
         self.initial_state_entry.pack(pady=5)
 
-        ttk.Label(master, text="Accept State:").pack(pady=5)
-        self.accept_state_entry = ttk.Entry(master, width=50)
+        ttk.Label(left_frame, text="Accept State:").pack(pady=5)
+        self.accept_state_entry = ttk.Entry(left_frame, width=50)
         self.accept_state_entry.pack(pady=5)
 
-        ttk.Label(master, text="Reject State:").pack(pady=5)
-        self.reject_state_entry = ttk.Entry(master, width=50)
+        ttk.Label(left_frame, text="Reject State:").pack(pady=5)
+        self.reject_state_entry = ttk.Entry(left_frame, width=50)
         self.reject_state_entry.pack(pady=5)
 
-        ttk.Label(master, text="Transitions (format: current_state,input_symbol,new_state,new_symbol,direction; separate by new lines):"
-                              "\ne.g. q0,a,(->)q1,b,R").pack(pady=5)
-        self.transitions_text = tk.Text(master, height=10, width=50, font=("Helvetica", 10))
+        ttk.Label(left_frame, text="Transitions (format: current_state,input_symbol,new_state,new_symbol,direction;"
+                                   "\n separate by new lines): e.g. q0,a,q1,b,R").pack(pady=5)
+
+        self.transitions_text = tk.Text(left_frame, height=10, width=50, font=("Helvetica", 10))
         self.transitions_text.pack(pady=5)
 
-        ttk.Label(master, text="Input String:").pack(pady=5)
-        self.input_string_entry = ttk.Entry(master, width=50)
+        ttk.Label(left_frame, text="Input String:").pack(pady=5)
+        self.input_string_entry = ttk.Entry(left_frame, width=50)
         self.input_string_entry.pack(pady=5)
 
-        button_frame = ttk.Frame(master)
+        button_frame = ttk.Frame(left_frame)
         button_frame.pack(pady=5)
 
         self.simulate_button = ttk.Button(button_frame, text="Start Simulation", command=self.start_simulation)
@@ -107,9 +112,13 @@ class TuringMachineSimulator:
         self.visualize_button = ttk.Button(button_frame, text="Visualize", command=self.visualize_tm)
         self.visualize_button.pack(side=tk.LEFT, padx=5)
 
-        ttk.Label(master, text="Output:").pack(pady=5)
-        self.output_text = tk.Text(master, height=10, width=50, font=("Helvetica", 10))
-        self.output_text.pack(pady=5)
+        # Right Frame for Output
+        right_frame = ttk.Frame(master)
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        ttk.Label(right_frame, text="Output:").pack(pady=5)
+        self.output_text = tk.Text(right_frame, height=30, width=50, font=("Helvetica", 10))
+        self.output_text.pack(fill=tk.BOTH, expand=True, pady=5)
 
     def parse_tm_description(self):
         # Parse states
@@ -167,8 +176,14 @@ class TuringMachineSimulator:
         if not self.simulation_active or self.tm is None:
             return
 
-        self.output_text.insert(tk.END, f"State: {self.tm.current_state}, Tape: {''.join(self.tm.tape)}, Head: {self.tm.head_position}\n")
+        # Insert current simulation status into the output text widget
+        self.output_text.insert(tk.END,
+                                f"State: {self.tm.current_state}, Tape: {''.join(self.tm.tape)}, Head: {self.tm.head_position}\n")
 
+        # Automatically scroll to the bottom of the text widget
+        self.output_text.see(tk.END)  # Ensure the view is updated to the last inserted line
+
+        # Check if the Turing Machine reaches accept or reject states
         if self.tm.is_accepting():
             self.output_text.insert(tk.END, "Accepted\n")
             self.simulation_active = False
@@ -177,6 +192,9 @@ class TuringMachineSimulator:
             self.output_text.insert(tk.END, "Rejected\n")
             self.simulation_active = False
             self.step_button.config(state=tk.DISABLED)
+
+        # Auto-scroll again to ensure the rejection/acceptance message is visible
+        self.output_text.see(tk.END)
 
     def reset_simulation(self):
         self.simulation_active = False
